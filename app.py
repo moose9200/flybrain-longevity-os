@@ -13,6 +13,9 @@ from src.affiliates import disclosure_banner
 from src.stacks import check_stack, share_encode, share_decode
 from src.seo import compound_slug, compound_page, share_card
 from src.viral import referral_code, referral_link, record_share, leaderboard, challenge_text
+from src.cards import score_card_svg, score_card_png
+from src.analytics import log_visit, visit_stats
+from src.promo import make_code, redeem, REWARDS
 import datetime
 
 BASE = os.path.dirname(__file__)
@@ -44,6 +47,11 @@ for key, p in PLANS.items():
 st.caption(disclosure_banner())
 
 params = st.query_params
+_visit_src = "stack" if params.get("stack") else ("compound" if params.get("compound") else ("ref" if params.get("ref") else "direct"))
+try:
+    log_visit(os.path.join(BASE, "data", "visits.json"), _visit_src, params.get("ref", ""))
+except Exception:
+    pass
 tab1, tab2, tab3 = st.tabs(["Screener", "Stack Checker", "Challenge"])
 with tab1:
     col1, col2 = st.columns(2)
@@ -114,6 +122,16 @@ with tab2:
             st.code(f"{SITE}?stack={code}", language="text")
             st.caption(share_card(res["stack_score"], res["verdict"],
                                   len(res["scored"])))
+            title = f"My stack ({len(res['scored'])} compounds)"
+            try:
+                st.download_button("Download share card (PNG)",
+                                   score_card_png(title, res["stack_score"],
+                                                  res["verdict"]),
+                                   file_name="flybrain_stack.png",
+                                   mime="image/png")
+            except Exception:
+                st.code(score_card_svg(title, res["stack_score"],
+                                       res["verdict"]), language="xml")
             handle = st.text_input("Handle for leaderboard", key="lb_handle")
             if st.button("Post to leaderboard") and handle.strip():
                 record_share(STORE, referral_code(handle.strip()),
@@ -130,3 +148,21 @@ with tab3:
         st.dataframe(pd.DataFrame(board))
     else:
         st.caption("Empty — first entry takes the crown.")
+    st.subheader("Rewards")
+    st.caption(f"Top 3: {REWARDS['leaderboard_top3']}. First share: {REWARDS['first_share']}. 5 referrals: {REWARDS['refer_5']}.")
+    rhandle = st.text_input("Handle for promo code", key="promo_handle")
+    if st.button("Get my launch code") and rhandle.strip():
+        st.code(make_code(rhandle.strip(), "launch"), language="text")
+    pcode = st.text_input("Redeem code", key="promo_redeem")
+    if st.button("Redeem") and pcode.strip() and rhandle.strip():
+        out = redeem(os.path.join(BASE, "data", "redemptions.json"),
+                     pcode.strip(), rhandle.strip())
+        if out["ok"]:
+            st.success(f"Reward: {out['reward']}")
+        else:
+            st.error("Invalid or already redeemed.")
+    try:
+        stats = visit_stats(os.path.join(BASE, "data", "visits.json"))
+        st.caption(f"{stats['total']} visits tracked. Sources: {stats['by_source']}")
+    except Exception:
+        pass
