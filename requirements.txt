@@ -1,0 +1,7 @@
+streamlit>=1.33
+pandas>=2.0
+pyarrow>=14
+neuprint-python>=0.4
+navis>=1.5
+pytest>=7.4
+plotly>=5.20
