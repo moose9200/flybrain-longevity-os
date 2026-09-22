@@ -18,6 +18,12 @@ streamlit run app.py
 - Bulk: gs://flyem-male-cns/v1.0/... (use API; large feathers not bundled)
 - Female: https://codex.flywire.ai/
 
+## Pricing
+- Free £0: top-10 leaderboard, 1 teaser report/mo
+- Researcher £19/mo: full 51-compound CSV, unlimited dossiers, circuit queries
+- Brand £299/report: screening dossier + claim-support pack
+- Checkout via Stripe Payment Links (env vars, nothing hardcoded). Affiliate links disclosed in-app.
+
 ## License / attribution
 Male CNS CC-BY. Cite Berg et al Cell 2026 + Dorkenwald et al Nature 2024.
 Human translation UNVERIFIED. No medical claims.
